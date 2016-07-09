@@ -16,11 +16,15 @@ I'm currently using this as a testbed for building out flask applications.
 
     `$ pip install -r requirements.txt`
     
-3. Initialize database
+3. Set Flask environment variables
+   
+     `$ export FLASK_APP=flaskr.py`
+     
+4. Initialize database
 
     `$ flask dbinit`
    
-4. Run application
+5. Run application
 
     `$ flask run`
     
