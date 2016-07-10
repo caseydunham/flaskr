@@ -1,4 +1,4 @@
-# flaskr ![Build Status](https://travis-ci.org/caseydunham/flaskr.svg?branch=master "Build Status")
+# flaskr ![Build Status](https://travis-ci.org/caseydunham/flaskr.svg?branch=master "Build Status") [![Coverage Status](https://coveralls.io/repos/github/caseydunham/flaskr/badge.svg?branch=master)](https://coveralls.io/github/caseydunham/flaskr?branch=master)
 
 This is the flaskr application that is built as part of the 
 [Flask tutorial](http://flask.pocoo.org/docs/0.11/tutorial/).
