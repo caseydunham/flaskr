@@ -5,7 +5,7 @@ python:
 install: "pip install -r requirements.txt"
 
 script:
-  coverage run --source=. flaskr_tests.py
+  coverage run --source=. tests_all.py
 
 after_success:
   coveralls

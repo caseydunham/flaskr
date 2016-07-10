@@ -49,7 +49,7 @@ class FlaskrTestCase(unittest.TestCase):
         ), follow_redirects=True)
         assert 'No entries found!' not in rv.data
         assert '&lt;h1&gt;Hello!&lt;/h1&gt;' in rv.data
-        assert '<strong>Rainy days are nice!</strong>' in rv.data
+        assert '&lt;strong&gt;Rainy days are nice!&lt;/strong&gt;' in rv.data
 
 if __name__ == '__main__':
     unittest.main()
