@@ -1,4 +1,4 @@
-# flaskr
+# flaskr ![Build Status](https://travis-ci.org/caseydunham/flaskr.svg?branch=master "Build Status")
 
 This is the flaskr application that is built as part of the 
 [Flask tutorial](http://flask.pocoo.org/docs/0.11/tutorial/).
