@@ -1,8 +1,7 @@
-import os
-import sqlite3
-
 from flask import Flask, request, session, g, redirect, url_for
 from flask import abort, render_template, flash
+
+from flask_sqlalchemy import SQLAlchemy
 
 
 app = Flask(__name__)
@@ -10,7 +9,8 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 
 app.config.update(dict(
-    DATABASE=os.path.join(app.root_path, 'flaskr.db'),
+    SQLALCHEMY_DATABASE_URI='sqlite:///flaskr.db',
+    SQLALCHEMY_ECHO=True,
     SECRET_KEY='development-secret-key',
     USERNAME='admin',
     PASSWORD='admin'
@@ -18,43 +18,20 @@ app.config.update(dict(
 
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
-
-def connect_db():
-    rv = sqlite3.connect(app.config['DATABASE'])
-    rv.row_factory = sqlite3.Row
-    return rv
+db = SQLAlchemy(app)
 
 
-def get_db():
-    if not hasattr(g, 'sqlite_db'):
-        g.sqlite_db = connect_db()
-    return g.sqlite_db
+class Entry(db.Model):
+    __tablename__ = 'entries'
 
-
-@app.teardown_appcontext
-def close_db(error):
-    if hasattr(g, 'sqlite_db'):
-        g.sqlite_db.close()
-
-
-def init_db():
-    db = get_db()
-    with app.open_resource('schema.sql', mode='r') as f:
-        db.cursor().executescript(f.read())
-    db.commit()
-
-
-@app.cli.command('initdb')
-def initdb_command():
-    init_db()
-    print 'Database initialized.'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String)
+    text = db.Column(db.String)
 
 
 @app.route('/')
 def show_entries():
-    db = get_db()
-    cur = db.execute('select title, text from entries order by id desc')
-    entries = cur.fetchall()
+    entries = Entry.query.all()
     return render_template('show_entries.html', entries=entries)
 
 
@@ -62,10 +39,11 @@ def show_entries():
 def add_entry():
     if not session.get('logged_in'):
         abort(401)
-    db = get_db()
-    db.execute('insert into entries (title, text) values (?, ?)',
-               [request.form['title'], request.form['text']])
-    db.commit()
+    entry = Entry()
+    entry.title = request.form['title']
+    entry.text = request.form['text']
+    db.session.add(entry)
+    db.session.commit()
     flash('New entry successfully added')
     return redirect(url_for('show_entries'))
 
@@ -93,4 +71,6 @@ def logout():
 
 
 if __name__ == '__main__':
+    app.debug = True
+    db.create_all()
     app.run()
