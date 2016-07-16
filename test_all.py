@@ -63,19 +63,23 @@ class FlaskrTestCase(TestCase):
     def logout(self):
         return self.client.get('/logout', follow_redirects=True)
 
-    def test_login_logout(self):
+    def test_successful_login_logout(self):
         rv = self.login('admin', 'admin')
         self.assert200(rv)
         assert 'Login successful' in rv.data
         rv = self.logout()
         self.assert200(rv)
         assert 'You were logged out' in rv.data
+
+    def test_invalid_username(self):
         rv = self.login('adminx', 'admin')
         self.assert200(rv)
-        assert 'Invalid username' in rv.data
+        assert 'Invalid username or password' in rv.data
+
+    def test_invalid_password(self):
         rv = self.login('admin', 'adminx')
         self.assert200(rv)
-        assert 'Invalid password' in rv.data
+        assert 'Invalid username or password' in rv.data
 
     def test_add_message(self):
         self.login('admin', 'admin')

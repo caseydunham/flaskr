@@ -96,15 +96,15 @@ def login():
         try:
             user = User.query.filter(User.username == request.form['username']).one()
             if user is None:
-                error = 'Invalid username'
+                error = 'Invalid username or password'
             elif not user.is_valid_password(request.form['password']):
-                error = 'Invalid password'
+                error = 'Invalid username or password'
             else:
                 login_user(user)
                 flash('Login successful')
                 return redirect(url_for('show_entries'))
-        except (MultipleResultsFound, NoResultFound):
-            error = 'Invalid username'
+        except (MultipleResultsFound, NoResultFound, TypeError):
+            error = 'Invalid username or password'
     return render_template('login.html', error=error)
 
 
