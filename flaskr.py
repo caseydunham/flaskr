@@ -1,8 +1,13 @@
+from random import SystemRandom
+
+from backports.pbkdf2 import compare_digest, pbkdf2_hmac
 from flask import Flask, request, session, g, redirect, url_for
 from flask import abort, render_template, flash
 
+from flask_login import UserMixin, LoginManager, logout_user, login_user, current_user, login_required
 from flask_sqlalchemy import SQLAlchemy
-
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 app = Flask(__name__)
 
@@ -11,14 +16,51 @@ app.config.from_object(__name__)
 app.config.update(dict(
     SQLALCHEMY_DATABASE_URI='sqlite:///flaskr.db',
     SQLALCHEMY_ECHO=True,
-    SECRET_KEY='development-secret-key',
-    USERNAME='admin',
-    PASSWORD='admin'
+    SECRET_KEY='development-secret-key'
 ))
 
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
 db = SQLAlchemy(app)
+
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
+
+login_manager.init_app(app)
+
+
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String)
+    _password = db.Column(db.LargeBinary(120))
+    _salt = db.Column(db.String(120))
+
+    @hybrid_property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, value):
+        if self._salt is None:
+            self._salt = bytes(SystemRandom().getrandbits(128))
+        self._password = self._hash_password(value)
+
+    def is_valid_password(self, password):
+        new_hash = self._hash_password(password)
+        return compare_digest(new_hash, self._password)
+
+    def _hash_password(self, password):
+        pwd = password.encode('utf-8')
+        salt = bytes(self._salt)
+        buff = pbkdf2_hmac('sha512', pwd, salt, iterations=10000)
+        return bytes(buff)
 
 
 class Entry(db.Model):
@@ -36,9 +78,8 @@ def show_entries():
 
 
 @app.route('/add', methods=['POST'])
+@login_required
 def add_entry():
-    if not session.get('logged_in'):
-        abort(401)
     entry = Entry()
     entry.title = request.form['title']
     entry.text = request.form['text']
@@ -52,25 +93,34 @@ def add_entry():
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME']:
+        try:
+            user = User.query.filter(User.username == request.form['username']).one()
+            if user is None:
+                error = 'Invalid username'
+            elif not user.is_valid_password(request.form['password']):
+                error = 'Invalid password'
+            else:
+                login_user(user)
+                flash('Login successful')
+                return redirect(url_for('show_entries'))
+        except (MultipleResultsFound, NoResultFound):
             error = 'Invalid username'
-        elif request.form['password'] != app.config['PASSWORD']:
-            error = 'Invalid password'
-        else:
-            session['logged_in'] = True
-            flash('Login successful')
-            return redirect(url_for('show_entries'))
     return render_template('login.html', error=error)
 
 
 @app.route('/logout')
 def logout():
-    session.pop('logged_in', None)
+    logout_user()
     flash('You were logged out')
-    return redirect(url_for('show_entries'))
+    return redirect(url_for('login'))
+
+
+def init_db():
+    db.create_all()
+    db.session.commit()
 
 
 if __name__ == '__main__':
     app.debug = True
-    db.create_all()
+    init_db()
     app.run()
