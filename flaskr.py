@@ -89,12 +89,28 @@ def add_entry():
     return redirect(url_for('show_entries'))
 
 
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    error = None
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User()
+        user.username = username
+        user.password = password
+        db.session.add(user)
+        db.session.commit()
+        return redirect(url_for('login'))
+    return render_template('signup.html', error=error)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
         try:
-            user = User.query.filter(User.username == request.form['username']).one()
+            username = request.form['username']
+            user = User.query.filter(User.username == username).one()
             if user is None:
                 error = 'Invalid username or password'
             elif not user.is_valid_password(request.form['password']):
