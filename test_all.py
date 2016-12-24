@@ -1,13 +1,11 @@
-import unittest
 import tempfile
+import unittest
 
 from flask import Flask
+from flask_login import LoginManager
 from flask_testing import TestCase
 
-
-from flask_login import LoginManager
-
-from flaskr import db, User, show_entries, login, logout, add_entry
+from app.flaskr import db, User, show_entries, login, logout, add_entry
 
 
 class FlaskrTestCase(TestCase):
