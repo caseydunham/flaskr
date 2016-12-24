@@ -7,7 +7,7 @@ install:
 
 script:
   - coverage run --source=. test_all.py
-  - check.sh
+  - ./check.sh
 
 after_success:
   - coveralls
