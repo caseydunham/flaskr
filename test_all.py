@@ -1,51 +1,33 @@
-import tempfile
 import unittest
 
-from flask import Flask
-from flask_login import LoginManager
 from flask_testing import TestCase
 
-from app.flaskr import db, User, show_entries, login, logout, add_entry
+from app import DB, create_app
+from app.models import User
 
 
 class FlaskrTestCase(TestCase):
 
     def create_app(self):
-        self.db_fd, self.database_file = tempfile.mkstemp()
+        app = create_app()
+        DB.app = app
+        self.app = app.test_client()
 
-        app = Flask(__name__)
-        login_manager = LoginManager()
-        login_manager.login_view = 'login'
-        login_manager.init_app(app)
+        DB.create_all()
 
-        @login_manager.user_loader
-        def load_user(user_id):
-            return User.query.get(user_id)
+        user = User('admin', 'admin')
 
-        app.add_url_rule('/', 'show_entries', show_entries)
-        app.add_url_rule('/login', 'login', login, methods=['GET', 'POST'])
-        app.add_url_rule('/logout', 'logout', logout)
-        app.add_url_rule('/add', 'add_entry', add_entry, methods=['GET', 'POST'])
-
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + self.database_file
-        app.config['SECRET_KEY'] = 'super-secret-test-key'
-        app.config['TESTING'] = True
-
+        DB.session.add(user)
+        DB.session.commit()
 
         return app
 
     def setUp(self):
-        db.create_all()
-
-        user = User()
-        user.username = 'admin'
-        user.password = 'admin'
-        db.session.add(user)
-        db.session.commit()
+        pass
 
     def tearDown(self):
-        db.session.remove()
-        db.drop_all()
+        DB.session.remove()
+        DB.drop_all()
 
     def test_empty_db(self):
         response = self.client.get('/')

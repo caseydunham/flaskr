@@ -5,7 +5,7 @@ from flask import url_for
 from flask_login import login_required
 from werkzeug.utils import redirect
 
-from app.database import db
+from app.database import DB
 from app.models import Entry
 
 from ..entry import entry
@@ -20,10 +20,12 @@ def show_entries():
 @entry.route('/add', methods=['POST'])
 @login_required
 def add_entry():
-    e = Entry()
-    e.title = request.form['title']
-    e.text = request.form['text']
-    db.session.add(e)
-    db.session.commit()
+    title = request.form['title']
+    text = request.form['text']
+
+    e = Entry(title, text)
+
+    DB.session.add(e)
+    DB.session.commit()
     flash('New entry successfully added')
     return redirect(url_for('entry.show_entries'))

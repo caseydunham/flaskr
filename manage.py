@@ -2,13 +2,13 @@ from app import create_app
 
 from flask_script import Manager, Server, Shell, prompt_bool
 
-from app.database import db, populate_db
+from app.database import DB, populate_db
 
 
 def _make_context():
     return dict(
         app=create_app(),
-        db=db
+        db=DB
     )
 
 app = create_app()
@@ -21,7 +21,7 @@ manager.add_command('shell', Shell(make_context=_make_context))
 @manager.command
 def create_db():
     """Creates database tables and populates them."""
-    db.create_all()
+    DB.create_all()
     populate_db()
 
 
@@ -29,7 +29,7 @@ def create_db():
 def drop_db():
     """Drops database tables."""
     if prompt_bool('Are you sure?'):
-        db.drop_all()
+        DB.drop_all()
 
 
 @manager.command

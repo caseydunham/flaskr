@@ -1,14 +1,15 @@
 from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy()
+DB = SQLAlchemy()
 
 
 def populate_db():
+    """Populate database with needed initial data"""
     from app.models import User
 
     admin_user = User()
     admin_user.username = 'admin'
     admin_user.password = 'admin'
 
-    db.session.add(admin_user)
-    db.session.commit()
+    DB.session.add(admin_user)
+    DB.session.commit()

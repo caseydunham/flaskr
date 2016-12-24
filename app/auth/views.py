@@ -6,15 +6,16 @@ from flask_login import logout_user, login_user
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from werkzeug.utils import redirect
 
-from app.database import db
-from app.extensions import lm
+from app.database import DB
+from app.extensions import LM
 from app.models import User
 
 from ..auth import auth
 
 
-@lm.user_loader
+@LM.user_loader
 def load_user(user_id):
+    """LoginManager extension load_user function"""
     return User.query.get(int(user_id))
 
 
@@ -54,7 +55,7 @@ def signup():
         user = User()
         user.username = username
         user.password = password
-        db.session.add(user)
-        db.session.commit()
+        DB.session.add(user)
+        DB.session.commit()
         return redirect(url_for('auth.login'))
     return render_template('signup.html', error=error)
