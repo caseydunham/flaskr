@@ -16,16 +16,12 @@ I'm currently using this as a testbed for building out flask applications.
 
     `$ pip install -r requirements.txt`
     
-3. Set Flask environment variables
+3. Initialize the database
    
-     `$ export FLASK_APP=flaskr.py`
+     `$ python manage.py create_db`
      
-4. Initialize database
+4. Run application
 
-    `$ flask dbinit`
-   
-5. Run application
+    `$ python manage.py runserver`
 
-    `$ flask run`
-    
 Access application at localhost:5000
